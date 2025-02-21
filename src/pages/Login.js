@@ -1,27 +1,53 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { Form, Input, Button, Card, message } from 'antd';
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../store/authSlice';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      alert('Login successful');
-    } catch (err) {
-      alert('Login failed');
-    }
+  const onFinish = (values) => {
+    setLoading(true);
+    setTimeout(() => {
+      if (values.username === 'admin' && values.password === 'password') {
+        dispatch(loginSuccess({ username: values.username }));
+        message.success('Login successful!');
+      } else {
+        message.error('Invalid username or password');
+      }
+      setLoading(false);
+    }, 1000);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-      <button type="submit">Login</button>
-    </form>
+    <Card title="Login" style={{ width: 300, margin: '100px auto' }}>
+      <Form
+        name="login"
+        initialValues={{ remember: true }}
+        onFinish={onFinish}
+      >
+        <Form.Item
+          name="username"
+          rules={[{ required: true, message: 'Please input your username!' }]}
+        >
+          <Input placeholder="Username" />
+        </Form.Item>
+
+        <Form.Item
+          name="password"
+          rules={[{ required: true, message: 'Please input your password!' }]}
+        >
+          <Input.Password placeholder="Password" />
+        </Form.Item>
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={loading} block>
+            Log in
+          </Button>
+        </Form.Item>
+      </Form>
+    </Card>
   );
 };
 
